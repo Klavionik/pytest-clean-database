@@ -1,0 +1,26 @@
+[project]
+name = "pytest-clean-db"
+version = "0.1.0"
+description = "A pytest fixture that ensures every test runs on a clean database."
+authors = [
+    {name = "Roman Vlasenko",email = "klavionik@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pytest (>=7.0,<9)"
+]
+classifiers = [
+    "Framework :: Pytest"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.entry-points.pytest11]
+clean-db = "pytest_clean_db.plugin"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.14.1"
