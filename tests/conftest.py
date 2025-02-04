@@ -1,43 +1,87 @@
-import enum
-from collections.abc import Iterable
-import dataclasses
+from collections.abc import Iterator
 
-from pytest_clean_db import queries
+
+from pytest_clean_db import Connection
+from psycopg import connect as pgconnect
+from pymysql import connect as mysqlconnect
+from pytest_clean_db.adapters import DBAPIAdapter, DBAPIConnection
 import pytest
 
 
-class FakeConnectionState(enum.IntFlag):
-    TABLE_CREATED = enum.auto()
-    MARK_DIRTY_FUNCTION_CREATED = enum.auto()
-    TRIGGER_CREATED = enum.auto()
-    CLEAN_TABLES_FUNCTION_CREATED = enum.auto()
+@pytest.fixture(scope="session")
+def test_database(default_connection: DBAPIConnection) -> Iterator[None]:
+    with default_connection.cursor() as cur:
+        cur.execute("DROP DATABASE IF EXISTS test;")
+        cur.execute("CREATE DATABASE test;")
 
+    yield
 
-@dataclasses.dataclass
-class FakeConnection:
-    state: FakeConnectionState = FakeConnectionState(0)
-    clean_tables_calls: int = 0
-
-    def fetch(self, query: str) -> Iterable[dict[str, str]]:
-        return [{"name": "test_table"}]
-
-    def execute(self, query: str) -> None:
-        if query == queries.CREATE_DIRTY_TABLE:
-            self.state = self.state | FakeConnectionState.TABLE_CREATED
-        elif query == queries.CREATE_MARK_DIRTY_FUNCTION:
-            self.state = self.state | FakeConnectionState.MARK_DIRTY_FUNCTION_CREATED
-        elif query == queries.CREATE_MARK_DIRTY_TRIGGER % "test_table":
-            self.state = self.state | FakeConnectionState.TRIGGER_CREATED
-        elif query == queries.CREATE_CLEAN_TABLES_FUNCTION:
-            self.state = self.state | FakeConnectionState.CLEAN_TABLES_FUNCTION_CREATED
-        elif query == queries.EXECUTE_CLEAN_TABLES:
-            self.clean_tables_calls += 1
-        else:
-            raise ValueError("Unknown query.")
-
-        return None
+    with default_connection.cursor() as cur:
+        pass
+        # cur.execute("DROP DATABASE test;")
 
 
 @pytest.fixture(scope="session")
-def clean_db_connections() -> Iterable[FakeConnection]:
-    return [FakeConnection(), FakeConnection()]
+def test_tables(test_connection: DBAPIConnection) -> None:
+    with test_connection.cursor() as cur:
+        cur.execute("CREATE TABLE foo(baz BIGINT);")
+        cur.execute("CREATE TABLE bar(baz BIGINT);")
+
+
+@pytest.fixture(scope="session")
+def default_connection(request: pytest.FixtureRequest) -> Iterator[DBAPIConnection]:
+    match request.config.option.clean_db_dialect:
+        case "pg":
+            pg = pgconnect(
+                "postgresql://postgres:password@0.0.0.0:5432/postgres",
+                autocommit=True,
+            )
+            yield pg
+            pg.close()
+        case "mysql":
+            mysql = mysqlconnect(
+                host="0.0.0.0",
+                port=3306,
+                user="root",
+                password="password",
+                database="mysql",
+                autocommit=True,
+            )
+            yield mysql
+            mysql.close()
+        case _:
+            raise ValueError("Unknown database dialect. Use one of 'pg' or 'mysql'.")
+
+
+@pytest.fixture(scope="session")
+def test_connection(
+    request: pytest.FixtureRequest, test_database: None
+) -> Iterator[DBAPIConnection]:
+    match request.config.option.clean_db_dialect:
+        case "pg":
+            pg = pgconnect(
+                "postgresql://postgres:password@0.0.0.0:5432/test",
+                autocommit=True,
+            )
+            yield pg
+            pg.close()
+        case "mysql":
+            mysql = mysqlconnect(
+                host="0.0.0.0",
+                port=3306,
+                user="root",
+                password="password",
+                database="test",
+                autocommit=True,
+            )
+            yield mysql
+            mysql.close()
+        case _:
+            raise ValueError("Unknown database dialect. Use one of 'pg' or 'mysql'.")
+
+
+@pytest.fixture(scope="session")
+def clean_db_connections(
+    test_connection: DBAPIConnection, test_tables: None
+) -> list[Connection]:
+    return [DBAPIAdapter(test_connection)]

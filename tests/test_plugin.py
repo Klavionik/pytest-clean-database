@@ -1,20 +1,30 @@
-from collections.abc import Iterable
+import pytest
 
-from tests.conftest import FakeConnectionState, FakeConnection
-
-
-def test_machinery_initialized(clean_db_connections: Iterable[FakeConnection]) -> None:
-    expected_state = (
-        FakeConnectionState.TABLE_CREATED
-        | FakeConnectionState.MARK_DIRTY_FUNCTION_CREATED
-        | FakeConnectionState.TRIGGER_CREATED
-        | FakeConnectionState.CLEAN_TABLES_FUNCTION_CREATED
-    )
-
-    for conn in clean_db_connections:
-        assert conn.state == expected_state
+from pytest_clean_db.adapters import DBAPIConnection
 
 
-def test_cleanup_fixture_runs(clean_db_connections: Iterable[FakeConnection]) -> None:
-    for conn in clean_db_connections:
-        assert conn.clean_tables_calls == 1
+@pytest.mark.plugin
+def test_makes_side_effect(test_connection: DBAPIConnection):
+    with test_connection.cursor() as cur:
+        cur.execute("INSERT INTO foo(baz) VALUES (1);")
+        cur.execute("INSERT INTO bar(baz) VALUES (1);")
+
+        cur.execute("SELECT * FROM foo;")
+        foo_rows = cur.fetchall()
+        cur.execute("SELECT * FROM bar;")
+        bar_rows = cur.fetchall()
+
+    assert len(foo_rows)
+    assert len(bar_rows)
+
+
+@pytest.mark.plugin
+def test_clean_tables_works(test_connection: DBAPIConnection):
+    with test_connection.cursor() as cur:
+        cur.execute("SELECT * FROM foo;")
+        foo_rows = cur.fetchall()
+        cur.execute("SELECT * FROM bar;")
+        bar_rows = cur.fetchall()
+
+    assert not len(foo_rows)
+    assert not len(bar_rows)
