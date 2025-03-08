@@ -79,7 +79,6 @@ def clean_db_urls(test_tables: None) -> list[str]:
 @pytest.fixture(scope="session", params=["psql", "mysql"])
 def test_connection(
     request: pytest.FixtureRequest,
-    test_tables: None,
     mysql_connection: MySQLConnection,
     pg_connection: PGConnection,
 ) -> Iterator[MySQLConnection | PGConnection]:
