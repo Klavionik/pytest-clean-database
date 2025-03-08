@@ -1,11 +1,8 @@
-import pytest
-
-from pytest_clean_db.adapters import DBAPIConnection
+from psycopg import Connection
 
 
-@pytest.mark.pg
-def test_check_dirty_table_created(test_connection: DBAPIConnection):
-    with test_connection.cursor() as cur:
+def test_check_dirty_table_created(pg_connection: Connection):
+    with pg_connection.cursor() as cur:
         cur.execute(
             """
             SELECT *
@@ -19,9 +16,8 @@ def test_check_dirty_table_created(test_connection: DBAPIConnection):
     assert len(result) == 1
 
 
-@pytest.mark.pg
-def test_check_trigger_created(test_connection: DBAPIConnection):
-    with test_connection.cursor() as cur:
+def test_check_trigger_created(pg_connection: Connection):
+    with pg_connection.cursor() as cur:
         cur.execute(
             """
             SELECT * FROM pg_trigger
@@ -34,9 +30,8 @@ def test_check_trigger_created(test_connection: DBAPIConnection):
     assert len(result) == 2
 
 
-@pytest.mark.pg
-def test_check_mark_dirty_function_created(test_connection: DBAPIConnection):
-    with test_connection.cursor() as cur:
+def test_check_mark_dirty_function_created(pg_connection: Connection):
+    with pg_connection.cursor() as cur:
         cur.execute(
             """
             SELECT * FROM pg_proc WHERE proname = 'mark_dirty';
@@ -47,9 +42,8 @@ def test_check_mark_dirty_function_created(test_connection: DBAPIConnection):
     assert len(result) == 1
 
 
-@pytest.mark.pg
-def test_check_clean_tables_function_created(test_connection: DBAPIConnection):
-    with test_connection.cursor() as cur:
+def test_check_clean_tables_function_created(pg_connection: Connection):
+    with pg_connection.cursor() as cur:
         cur.execute(
             """
             SELECT * FROM pg_proc WHERE proname = 'clean_tables';

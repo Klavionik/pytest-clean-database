@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -73,17 +72,13 @@ SELECT %(schema)s.create_mark_dirty_triggers();
 """
 
 
-def setup_tracing(db_schema: str, connections: Iterable["Connection"]) -> None:
-    for conn in connections:
-        conn.execute(CREATE_DIRTY_TABLE % {"schema": db_schema})
-        conn.execute(CREATE_MARK_DIRTY_FUNCTION % {"schema": db_schema})
-        conn.execute(CREATE_CLEAN_TABLES_FUNCTION % {"schema": db_schema})
-        conn.execute(CREATE_TRIGGERS_FUNCTION % {"schema": db_schema})
-        conn.execute(EXECUTE_CREATE_TRIGGERS % {"schema": db_schema})
+def setup_tracing(db_schema: str, conn: "Connection") -> None:
+    conn.execute(CREATE_DIRTY_TABLE % {"schema": db_schema})
+    conn.execute(CREATE_MARK_DIRTY_FUNCTION % {"schema": db_schema})
+    conn.execute(CREATE_CLEAN_TABLES_FUNCTION % {"schema": db_schema})
+    conn.execute(CREATE_TRIGGERS_FUNCTION % {"schema": db_schema})
+    conn.execute(EXECUTE_CREATE_TRIGGERS % {"schema": db_schema})
 
 
-def run_clean_tables(
-    db_schema: str, clean_db_connections: Iterable["Connection"]
-) -> None:
-    for conn in clean_db_connections:
-        conn.execute(EXECUTE_CLEAN_TABLES % {"schema": db_schema})
+def run_clean_tables(db_schema: str, conn: "Connection") -> None:
+    conn.execute(EXECUTE_CLEAN_TABLES % {"schema": db_schema})

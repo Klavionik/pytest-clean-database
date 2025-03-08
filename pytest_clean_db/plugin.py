@@ -4,6 +4,7 @@ from typing import Literal
 import pytest
 
 from pytest_clean_db import Connection
+from pytest_clean_db.connection import create_connection
 from pytest_clean_db.dialect import mysql, postgres
 
 Dialect: Literal["psql", "mysql"]
@@ -12,43 +13,47 @@ Dialect: Literal["psql", "mysql"]
 def pytest_addoption(parser: pytest.Parser) -> None:
     group = parser.getgroup("clean_db")
     group.addoption(
-        "--clean-db-dialect",
-        default="pg",
-        help="Choose database dialect.",
-        choices=("pg", "mysql"),
-    )
-    group.addoption(
         "--clean-db-pg-schema", default="public", help="Set schema for PostgreSQL."
     )
 
 
 @pytest.fixture(scope="session", autouse=True)
+def clean_db_connections(clean_db_urls: Iterable[str]) -> Iterator[list[Connection]]:
+    connections = [create_connection(url) for url in clean_db_urls]
+
+    yield connections
+
+    for conn in connections:
+        conn.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
 def setup_tracing(
-    request: pytest.FixtureRequest, clean_db_connections: Iterable[Connection]
+    request: pytest.FixtureRequest, clean_db_connections: list[Connection]
 ) -> None:
-    match request.config.option.clean_db_dialect:
-        case "pg":
-            postgres.setup_tracing(
-                request.config.option.clean_db_pg_schema, clean_db_connections
-            )
-        case "mysql":
-            mysql.setup_tracing(clean_db_connections)
-        case _:
-            raise ValueError("Unknown database dialect. Use one of 'pg' or 'mysql'.")
+    for conn in clean_db_connections:
+        match conn.dialect:
+            case "pg":
+                postgres.setup_tracing(request.config.option.clean_db_pg_schema, conn)
+            case "mysql":
+                mysql.setup_tracing(conn)
+            case _:
+                raise ValueError(f"Invalid database dialect {conn.dialect}.")
 
 
 @pytest.fixture(autouse=True)
 def run_clean_tables(
-    request: pytest.FixtureRequest, clean_db_connections: Iterable[Connection]
+    request: pytest.FixtureRequest, clean_db_connections: list[Connection]
 ) -> Iterator[None]:
     yield
 
-    match request.config.option.clean_db_dialect:
-        case "pg":
-            postgres.run_clean_tables(
-                request.config.option.clean_db_pg_schema, clean_db_connections
-            )
-        case "mysql":
-            mysql.run_clean_tables(clean_db_connections)
-        case _:
-            raise ValueError("Unknown database dialect. Use one of 'pg' or 'mysql'.")
+    for conn in clean_db_connections:
+        match conn.dialect:
+            case "pg":
+                postgres.run_clean_tables(
+                    request.config.option.clean_db_pg_schema, conn
+                )
+            case "mysql":
+                mysql.run_clean_tables(conn)
+            case _:
+                raise ValueError(f"Invalid database dialect {conn.dialect}.")

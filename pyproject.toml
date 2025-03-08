@@ -27,10 +27,3 @@ mypy = "^1.14.1"
 psycopg = "^3.2.4"
 pymysql = {extras = ["rsa"], version = "^1.1.1"}
 types-pymysql = "^1.1.0.20241103"
-
-[tool.pytest.ini_options]
-markers = [
-    "plugin: common pytest-clean-db plugin tests",
-    "pg: PostgreSQL-specific tests",
-    "mysql: MySQL-specific tests",
-]

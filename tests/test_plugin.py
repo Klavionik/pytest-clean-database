@@ -1,10 +1,8 @@
-import pytest
+from psycopg import Connection as PGConnection
+from pymysql import Connection as MySQLConnection
 
-from pytest_clean_db.adapters import DBAPIConnection
 
-
-@pytest.mark.plugin
-def test_makes_side_effect(test_connection: DBAPIConnection):
+def test_makes_side_effect(test_connection: MySQLConnection | PGConnection):
     with test_connection.cursor() as cur:
         cur.execute("INSERT INTO foo(baz) VALUES (1);")
         cur.execute("INSERT INTO bar(baz) VALUES (1);")
@@ -18,8 +16,7 @@ def test_makes_side_effect(test_connection: DBAPIConnection):
     assert len(bar_rows)
 
 
-@pytest.mark.plugin
-def test_clean_tables_works(test_connection: DBAPIConnection):
+def test_clean_tables_works(test_connection: MySQLConnection | PGConnection):
     with test_connection.cursor() as cur:
         cur.execute("SELECT * FROM foo;")
         foo_rows = cur.fetchall()

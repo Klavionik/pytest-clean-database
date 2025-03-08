@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -50,32 +49,6 @@ UPDATE __dirty_tables SET is_dirty = FALSE;
 END;
 """
 
-CREATE_TRIGGERS_FUNCTION = """\
-CREATE PROCEDURE create_mark_dirty_triggers()
-BEGIN
-DECLARE tablename TEXT;
-DECLARE done BOOL;
-DECLARE cur CURSOR FOR SELECT name FROM __dirty_tables;
-DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-OPEN cur;
-
-read_loop: LOOP
-    FETCH cur INTO tablename;
-
-    IF done THEN
-        LEAVE read_loop;
-    END IF;
-
-    SET @query = CONCAT('CREATE TRIGGER mark_dirty_', tablename, ' AFTER INSERT ON ', tablename, ' FOR EACH ROW CALL mark_dirty(\'', tablename, '\');');
-    PREPARE stmt FROM @query;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
-  END LOOP;
-
-UPDATE __dirty_tables SET is_dirty = FALSE;
-END;
-"""
-
 SELECT_DIRTY_TABLES_NAMES = """\
 SELECT name FROM __dirty_tables
 """
@@ -84,20 +57,15 @@ EXECUTE_CLEAN_TABLES = """\
 CALL clean_tables();
 """
 
-EXECUTE_CREATE_TRIGGERS = """\
-CALL create_mark_dirty_triggers();
-"""
+
+def setup_tracing(conn: "Connection") -> None:
+    conn.execute(CREATE_DIRTY_TABLE)
+    conn.execute(CREATE_MARK_DIRTY_FUNCTION)
+    conn.execute(CREATE_CLEAN_TABLES_FUNCTION)
+
+    for table in conn.fetch(SELECT_DIRTY_TABLES_NAMES):
+        conn.execute(CREATE_MARK_DIRTY_TRIGGER % {"table": table})
 
 
-def setup_tracing(connections: Iterable["Connection"]) -> None:
-    for conn in connections:
-        conn.execute(CREATE_DIRTY_TABLE)
-        conn.execute(CREATE_MARK_DIRTY_FUNCTION)
-        conn.execute(CREATE_CLEAN_TABLES_FUNCTION)
-        conn.execute(CREATE_TRIGGERS_FUNCTION)
-        conn.execute(EXECUTE_CREATE_TRIGGERS)
-
-
-def run_clean_tables(clean_db_connections: Iterable["Connection"]) -> None:
-    for conn in clean_db_connections:
-        conn.execute(EXECUTE_CLEAN_TABLES)
+def run_clean_tables(conn: "Connection") -> None:
+    conn.execute(EXECUTE_CLEAN_TABLES)
