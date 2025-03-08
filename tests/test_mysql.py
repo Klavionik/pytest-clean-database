@@ -19,14 +19,14 @@ def test_check_trigger_created(mysql_connection: Connection):
     with mysql_connection.cursor() as cur:
         cur.execute(
             """
-            SELECT count(*)
+            SELECT *
             FROM information_schema.triggers
             WHERE trigger_name LIKE 'mark_dirty_%'
             """
         )
-        [result] = cur.fetchone()
+        result = cur.fetchall()
 
-    assert result == 2
+    assert len(result) == 2
 
 
 def test_check_mark_dirty_function_created(mysql_connection: Connection):
