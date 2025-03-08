@@ -45,30 +45,18 @@ END;
 $func$;
 """
 
-CREATE_TRIGGERS_FUNCTION = """\
-CREATE FUNCTION %(schema)s.create_mark_dirty_triggers()
-  RETURNS void
-  LANGUAGE plpgsql
-AS
-$func$
-DECLARE table_name text;
-BEGIN
-  FOR table_name in
-    SELECT name
-    FROM %(schema)s.__dirty_tables
-  LOOP
-    EXECUTE format('CREATE TRIGGER mark_dirty AFTER INSERT ON %(schema)s.%%I EXECUTE FUNCTION %(schema)s.mark_dirty();', table_name);
-  END LOOP;
-END;
-$func$;
+CREATE_MARK_DIRTY_TRIGGER = """\
+CREATE TRIGGER mark_dirty
+AFTER INSERT ON %(schema)s.%(table)s
+EXECUTE FUNCTION %(schema)s.mark_dirty();
+"""
+
+SELECT_DIRTY_TABLES_NAMES = """\
+SELECT name FROM %(schema)s.__dirty_tables
 """
 
 EXECUTE_CLEAN_TABLES = """\
 SELECT %(schema)s.clean_tables();
-"""
-
-EXECUTE_CREATE_TRIGGERS = """\
-SELECT %(schema)s.create_mark_dirty_triggers();
 """
 
 
@@ -76,8 +64,9 @@ def setup_tracing(db_schema: str, conn: "Connection") -> None:
     conn.execute(CREATE_DIRTY_TABLE % {"schema": db_schema})
     conn.execute(CREATE_MARK_DIRTY_FUNCTION % {"schema": db_schema})
     conn.execute(CREATE_CLEAN_TABLES_FUNCTION % {"schema": db_schema})
-    conn.execute(CREATE_TRIGGERS_FUNCTION % {"schema": db_schema})
-    conn.execute(EXECUTE_CREATE_TRIGGERS % {"schema": db_schema})
+
+    for table in conn.fetch(SELECT_DIRTY_TABLES_NAMES % {"schema": db_schema}):
+        conn.execute(CREATE_MARK_DIRTY_TRIGGER % {"table": table, "schema": db_schema})
 
 
 def run_clean_tables(db_schema: str, conn: "Connection") -> None:

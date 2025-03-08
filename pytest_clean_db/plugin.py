@@ -33,7 +33,7 @@ def setup_tracing(
 ) -> None:
     for conn in clean_db_connections:
         match conn.dialect:
-            case "pg":
+            case "psql":
                 postgres.setup_tracing(request.config.option.clean_db_pg_schema, conn)
             case "mysql":
                 mysql.setup_tracing(conn)
@@ -49,7 +49,7 @@ def run_clean_tables(
 
     for conn in clean_db_connections:
         match conn.dialect:
-            case "pg":
+            case "psql":
                 postgres.run_clean_tables(
                     request.config.option.clean_db_pg_schema, conn
                 )

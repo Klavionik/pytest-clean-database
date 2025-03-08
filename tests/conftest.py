@@ -10,7 +10,8 @@ import pytest
 def test_database() -> Iterator[None]:
     with (
         pgconnect(
-            "postgresql://postgres:password@0.0.0.0:5432/postgres", autocommit=True
+            "postgresql://postgres:password@0.0.0.0:5432/postgres",
+            autocommit=True,
         ) as pg_conn,
         mysqlconnect(
             host="0.0.0.0",
@@ -31,8 +32,8 @@ def test_database() -> Iterator[None]:
 
         yield
 
-        # mysql_cur.execute("DROP DATABASE test;")
-        # pg_cur.execute("DROP DATABASE test;")
+        mysql_cur.execute("DROP DATABASE test;")
+        pg_cur.execute("DROP DATABASE test;")
 
 
 @pytest.fixture(scope="session")

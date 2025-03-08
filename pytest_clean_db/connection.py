@@ -71,7 +71,7 @@ class MySQLConnection(Connection):
             from pymysql import connect
         except ModuleNotFoundError:
             raise RuntimeError(
-                "Cannot create connection: install psycopg to use PostgreSQL."
+                "Cannot create connection: install pymysql to use MySQL."
             )
 
         self.dsn = dsn
