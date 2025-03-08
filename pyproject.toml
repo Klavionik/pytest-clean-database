@@ -14,6 +14,9 @@ dependencies = [
 classifiers = [
     "Framework :: Pytest"
 ]
+[project.optional-dependencies]
+mysql = ["pymysql (>=1.0,<2.0.0)"]
+psql = ["psycopg (>=3.0,<4.0.0)"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -24,6 +27,6 @@ clean-db = "pytest_clean_db.plugin"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.14.1"
-psycopg = "^3.2.4"
-pymysql = {extras = ["rsa"], version = "^1.1.1"}
+psycopg = "^3.0.0"
+pymysql = {extras = ["rsa"], version = "^1.0.0"}
 types-pymysql = "^1.1.0.20241103"
