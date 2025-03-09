@@ -1,6 +1,6 @@
 # pytest-clean-db
-A pytest fixture that provides a clear and concise way to help you clean up your test 
-database after each test, maintaining a proper test isolation.
+A pytest plugin that provides a clear and concise way to help you keep your test 
+database clean between tests, maintaining a proper test isolation.
 
 # Installation
 pytest-clean-db requires Python >=3.8 and pytest >=7.0.
@@ -67,26 +67,27 @@ There are two steps to the machinery, implemented as [session-scoped](https://do
 fixtures.
 1. Set up all database objects that we need - executed only once at the start of the 
    test session.
-   1. Create an internal table that keeps track of other tables and their dirtyness.
-   2. Create a function that sets the dirty state for a table.
+   1. Create an internal table that keeps track of user tables and their dirtyness.
+   2. Create a function that sets the dirty state for a given table.
    3. Create a function that iterates over dirty tables and truncates them, then resets
       the dirty state.
    4. For every user table, create an INSERT trigger that will execute the function that
       marks this table as dirty. 
 2. Clean database tables - executed after every test.
 
-For this to work correctly it's important to execute the setup step only after the user
+For this to work properly it's important to execute the setup step only after the user
 tables have been created - otherwise, we won't be able to track their dirtyness. This 
 also implies that if you create a table inside a test - it won't be tracked either.
-
 Luckily, pytest fixtures have this incredible feature, where one fixture can 
 [request another one](https://docs.pytest.org/en/stable/how-to/fixtures.html#fixtures-can-request-other-fixtures), 
-forming a dependency graph. When you expose your DSNs via `clean_db_urls` fixture, 
-pytest-clean-db's setup fixture requests this fixture. This way you get to decide 
-when the setup happens. And this is why you must ensure that your `clean_db_urls` 
-fixture requests the fixture that sets up your test database. If you set up your test 
-database in some way other than pytest fixtures, it still should be possible to 
-create a fixture that blocks until your test database is ready.
+forming a dependency graph. 
+
+When you expose your DSNs via `clean_db_urls` fixture, pytest-clean-db's 
+setup fixture requests this fixture. This way you get to decide when the setup happens.
+And this is why you must ensure that your `clean_db_urls` fixture requests the fixture 
+that sets up your test database. If you set up your test database in some way other than 
+pytest fixtures, it still should be possible to create a fixture that blocks until your 
+test database is ready.
 
 # Rationale
 When you develop an application that makes use of a database, most likely you will end up
@@ -105,4 +106,4 @@ as the size of the test suite grows, this will become slower. `TRUNCATE TABLE ..
 improves the performance a bit, but if you have tens and hundreds of tables, truncating 
 every one of them on every test still will be unacceptably slow.
 
-Hence, this fixture.
+Hence, this plugin.
