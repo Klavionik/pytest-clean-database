@@ -17,7 +17,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def clean_db_connections(clean_db_urls: Iterable[str]) -> Iterator[list[Connection]]:
     connections = [create_connection(url) for url in clean_db_urls]
 
