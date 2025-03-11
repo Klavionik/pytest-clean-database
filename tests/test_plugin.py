@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from psycopg import Connection as PGConnection
 from pymysql import Connection as MySQLConnection
 
