@@ -9,32 +9,45 @@ import pytest
 
 @pytest.fixture(scope="session")
 def test_database() -> Iterator[None]:
-    with (
-        pgconnect(
-            "postgresql://postgres:password@0.0.0.0:5432/postgres",
-            autocommit=True,
-        ) as pg_conn,
-        mysqlconnect(
-            host="0.0.0.0",
-            port=3306,
-            user="root",
-            password="password",
-            database="mysql",
-            autocommit=True,
-        ) as mysql_conn,
-        mysql_conn.cursor() as mysql_cur,
-        pg_conn.cursor() as pg_cur,
-    ):
-        mysql_cur.execute("DROP DATABASE IF EXISTS test;")
-        mysql_cur.execute("CREATE DATABASE test;")
+    with mysqlconnect(
+        host="0.0.0.0",
+        port=3306,
+        user="root",
+        password="password",
+        database="mysql",
+        autocommit=True,
+    ) as mysql_conn:
+        with mysql_conn.cursor() as mysql_cur:
+            mysql_cur.execute("DROP DATABASE IF EXISTS test;")
+            mysql_cur.execute("CREATE DATABASE test;")
 
-        pg_cur.execute("DROP DATABASE IF EXISTS test;")
-        pg_cur.execute("CREATE DATABASE test;")
+    with pgconnect(
+        "postgresql://postgres:password@0.0.0.0:5432/postgres",
+        autocommit=True,
+    ) as pg_conn:
+        with pg_conn.cursor() as pg_cur:
+            pg_cur.execute("DROP DATABASE IF EXISTS test;")
+            pg_cur.execute("CREATE DATABASE test;")
 
-        yield
+    yield
 
-        mysql_cur.execute("DROP DATABASE test;")
-        pg_cur.execute("DROP DATABASE test;")
+    with mysqlconnect(
+        host="0.0.0.0",
+        port=3306,
+        user="root",
+        password="password",
+        database="mysql",
+        autocommit=True,
+    ) as mysql_conn:
+        with mysql_conn.cursor() as mysql_cur:
+            mysql_cur.execute("DROP DATABASE test;")
+
+    with pgconnect(
+        "postgresql://postgres:password@0.0.0.0:5432/postgres",
+        autocommit=True,
+    ) as pg_conn:
+        with pg_conn.cursor() as pg_cur:
+            pg_cur.execute("DROP DATABASE test;")
 
 
 @pytest.fixture(scope="session")
@@ -83,10 +96,9 @@ def test_connection(
     mysql_connection: MySQLConnection,
     pg_connection: PGConnection,
 ) -> Iterator[MySQLConnection | PGConnection]:
-    match request.param:
-        case "psql":
-            yield pg_connection
-        case "mysql":
-            yield mysql_connection
-        case _:
-            raise RuntimeError
+    if request.param == "psql":
+        yield pg_connection
+    elif request.param == "mysql":
+        yield mysql_connection
+    else:
+        raise RuntimeError

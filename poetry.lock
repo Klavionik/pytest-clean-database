@@ -432,7 +432,7 @@ version = "1.1.0.20241103"
 description = "Typing stubs for PyMySQL"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "types-PyMySQL-1.1.0.20241103.tar.gz", hash = "sha256:a7628542919a0ba87625fb79eefb2a2de45fb4ad32afe6e561e8f2f27fb58b8c"},
     {file = "types_PyMySQL-1.1.0.20241103-py3-none-any.whl", hash = "sha256:1a32efd8a74b5bf74c4de92a86c1cc6edaf3802dcfd5546635ab501eb5e3c096"},
@@ -471,4 +471,4 @@ psql = ["psycopg"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8"
-content-hash = "d2933549bc44163c19377ec1cb2876d50bd7647057fc98cd3199525db65d28fb"
+content-hash = "9de01187a7a420e4b85de717d56b2becc4ca04a89c49c4985e1be8b9d85705d4"

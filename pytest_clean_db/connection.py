@@ -115,7 +115,7 @@ def mysql_dsn_to_args(dsn: str) -> MySQLArgs:
         port=url.port,
         user=url.username,
         password=url.password,
-        database=url.path.removeprefix("/"),
+        database=url.path.lstrip("/"),
         autocommit=True,
     )
 
