@@ -126,10 +126,10 @@ def create_connection(dsn: str) -> Connection:
     except ValueError as exc:
         raise ValueError(f"Cannot detect scheme from connection string {dsn}.") from exc
 
-    match dialect:
-        case "postgresql":
-            return PostgreSQLConnection(dsn)
-        case "mysql":
-            return MySQLConnection(dsn)
-        case _:
-            raise ValueError(f'Unknown dialect {dialect}. Use one of: "psql", "mysql".')
+    if dialect == "postgresql":
+        return PostgreSQLConnection(dsn)
+
+    if dialect == "mysql":
+        return MySQLConnection(dsn)
+
+    raise ValueError(f'Unknown dialect {dialect}. Use one of: "psql", "mysql".')

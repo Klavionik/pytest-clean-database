@@ -32,13 +32,12 @@ def setup_tracing(
     request: pytest.FixtureRequest, clean_db_connections: list[Connection]
 ) -> None:
     for conn in clean_db_connections:
-        match conn.dialect:
-            case "psql":
-                postgres.setup_tracing(request.config.option.clean_db_pg_schema, conn)
-            case "mysql":
-                mysql.setup_tracing(conn)
-            case _:
-                raise ValueError(f"Invalid database dialect {conn.dialect}.")
+        if conn.dialect == "psql":
+            postgres.setup_tracing(request.config.option.clean_db_pg_schema, conn)
+        elif conn.dialect == "mysql":
+            mysql.setup_tracing(conn)
+        else:
+            raise ValueError(f"Invalid database dialect {conn.dialect}.")
 
 
 @pytest.fixture(autouse=True)
@@ -48,12 +47,9 @@ def run_clean_tables(
     yield
 
     for conn in clean_db_connections:
-        match conn.dialect:
-            case "psql":
-                postgres.run_clean_tables(
-                    request.config.option.clean_db_pg_schema, conn
-                )
-            case "mysql":
-                mysql.run_clean_tables(conn)
-            case _:
-                raise ValueError(f"Invalid database dialect {conn.dialect}.")
+        if conn.dialect == "psql":
+            postgres.run_clean_tables(request.config.option.clean_db_pg_schema, conn)
+        elif conn.dialect == "mysql":
+            mysql.run_clean_tables(conn)
+        else:
+            raise ValueError(f"Invalid database dialect {conn.dialect}.")
