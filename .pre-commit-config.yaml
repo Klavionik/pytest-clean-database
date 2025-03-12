@@ -10,8 +10,21 @@ repos:
     rev: v0.9.10
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --select=I]
+        stages: [pre-commit]
+
       - id: ruff-format
+        stages: [pre-commit]
+
+      - id: ruff
+        name: ruff-check
+        args: [--select=I]
+        stages: [manual]
+
+      - id: ruff-format
+        name: ruff-format-check
+        args: [--check]
+        stages: [manual]
 
   - repo: local
     hooks:

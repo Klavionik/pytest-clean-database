@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import abc
 import itertools
 import urllib.parse
 from typing import Any, Literal, TypedDict
-import abc
 
 Dialect = Literal["psql", "mysql"]
 

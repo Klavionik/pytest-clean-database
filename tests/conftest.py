@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 from collections.abc import Iterator
 
-
-from psycopg import connect as pgconnect, Connection as PGConnection
-from pymysql import connect as mysqlconnect, Connection as MySQLConnection
 import pytest
+from psycopg import Connection as PGConnection
+from psycopg import connect as pgconnect
+from pymysql import Connection as MySQLConnection
+from pymysql import connect as mysqlconnect
 
 
 @pytest.fixture(scope="session")
