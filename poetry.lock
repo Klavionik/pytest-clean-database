@@ -471,4 +471,4 @@ psql = ["psycopg"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8"
-content-hash = "9de01187a7a420e4b85de717d56b2becc4ca04a89c49c4985e1be8b9d85705d4"
+content-hash = "c8eff0015a842b31ba19cfb3267079ec7e72c41d42b98a99f438e08af3b0a812"

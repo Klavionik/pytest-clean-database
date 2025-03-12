@@ -1,31 +1,32 @@
-[project]
+[tool.poetry]
 name = "pytest-clean-database"
 version = "0.1.0"
 description = "A pytest plugin that cleans your database up after every test."
-authors = [
-    {name = "Roman Vlasenko",email = "klavionik@gmail.com"}
-]
-license = {text = "MIT"}
+authors = ["Roman Vlasenko <klavionik@gmail.com>"]
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.8"
-dependencies = [
-    "pytest (>=7.0,<9)"
-]
-classifiers = [
-    "Framework :: Pytest"
-]
-[project.optional-dependencies]
-mysql = ["pymysql (>=1.0,<2.0.0)"]
-psql = ["psycopg (>=3.0,<4.0.0)"]
-
-[tool.poetry]
 packages = [{ include = "pytest_clean_db" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Pytest",
+    "Typing :: Typed"
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+pytest = ">=7.0,<9"
+pymysql = { version = ">=1.0,<2.0.0", optional = true }
+psycopg = { version = ">=3.0,<4.0.0", optional = true }
+
+[tool.poetry.extras]
+mysql = ["pymysql"]
+psql = ["psycopg"]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[project.entry-points.pytest11]
+[tool.poetry.plugins."pytest11"]
 clean-db = "pytest_clean_db.plugin"
 
 [tool.poetry.group.dev.dependencies]
