@@ -1,6 +1,6 @@
 [project]
 name = "pytest-clean-database"
-version = "0.5.0"
+version = "0.1.0"
 description = "A pytest plugin that cleans your database up after every test."
 authors = [
     {name = "Roman Vlasenko",email = "klavionik@gmail.com"}
