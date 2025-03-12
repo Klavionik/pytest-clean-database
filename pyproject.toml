@@ -5,7 +5,7 @@ description = "A pytest plugin that cleans your database up after every test."
 authors = ["Roman Vlasenko <klavionik@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "pytest_clean_db" }]
+packages = [{ include = "pytest_clean_db", from = "src" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: Pytest",
