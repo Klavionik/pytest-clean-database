@@ -1,25 +1,25 @@
-# pytest-clean-db
+# pytest-clean-database
 A pytest plugin that provides a clear and concise way to help you keep your test 
 database clean between tests, maintaining a proper test isolation.
 
 # Installation
-pytest-clean-db requires Python >=3.8 and pytest >=7.0.
+pytest-clean-database requires Python >=3.8 and pytest >=7.0.
 
 There is support for two databases, PostgreSQL and MySQL.
 
 To install with support for PostgreSQL (using Psycopg3):
 ```shell
-pip install pytest-clean-db[psql]
+pip install pytest-clean-database[psql]
 ```
 
 To install with support for MySQL (using PyMySQL):
 ```shell
-pip install pytest-clean-db[mysql]
+pip install pytest-clean-database[mysql]
 ```
 
 Or both:
 ```shell
-pip install pytest-clean-db[psql,mysql]
+pip install pytest-clean-database[psql,mysql]
 ```
 
 # Usage
@@ -82,7 +82,7 @@ Luckily, pytest fixtures have this incredible feature, where one fixture can
 [request another one](https://docs.pytest.org/en/stable/how-to/fixtures.html#fixtures-can-request-other-fixtures), 
 forming a dependency graph. 
 
-When you expose your DSNs via `clean_db_urls` fixture, pytest-clean-db's 
+When you expose your DSNs via `clean_db_urls` fixture, pytest-clean-database's 
 setup fixture requests this fixture. This way you get to decide when the setup happens.
 And this is why you must ensure that your `clean_db_urls` fixture requests the fixture 
 that sets up your test database. If you set up your test database in some way other than 
