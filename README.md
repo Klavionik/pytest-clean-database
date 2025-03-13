@@ -1,8 +1,13 @@
 # pytest-clean-database
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![PyPI - Version](https://img.shields.io/pypi/v/pytest-clean-database)](https://pypi.org/project/pytest-clean-database)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pytest-clean-database)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/pytest-clean-database)](https://pypistats.org/packages/pytest-clean-database)
+
 A pytest plugin that provides a clear and concise way to help you keep your test 
 database clean between tests, maintaining a proper test isolation.
 
-# Installation
+## Installation
 pytest-clean-database requires Python >=3.8 and pytest >=7.0.
 
 There is support for two databases, PostgreSQL and MySQL.
@@ -22,7 +27,7 @@ Or both:
 pip install pytest-clean-database[psql,mysql]
 ```
 
-# Usage
+## Usage
 In your `conftest.py` сreate a new fixture called `clean_db_urls` and make it return a 
 sequence of database connection strings (in other words, DSNs) for every PostgreSQL/MySQL 
 test database you're using during the test run.
@@ -57,7 +62,7 @@ def clean_db_urls(test_db):  # Require test_db fixture.
 _PostgreSQL note:_ by default, `public` schema will be used. To change the schema, 
 you can pass it via `--clean-db-pg-schema` argument to pytest.
 
-# Mode of operation
+## Mode of operation
 Simply put, the approach for this package is to keep track of changes made to tables 
 using database triggers and an internal table, and truncate only the dirty ones. This 
 way we do not waste time truncating every table.
@@ -89,7 +94,7 @@ that sets up your test database. If you set up your test database in some way ot
 pytest fixtures, it still should be possible to create a fixture that blocks until your 
 test database is ready.
 
-# Rationale
+## Rationale
 When you develop an application that makes use of a database, most likely you will end up
 having at least a few test cases that somehow operate on your test database, creating 
 side effects (like inserting and updating rows). That means, to keep your tests properly 
