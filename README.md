@@ -62,6 +62,9 @@ def clean_db_urls(test_db):  # Require test_db fixture.
 _PostgreSQL note:_ by default, `public` schema will be used. To change the schema, 
 you can pass it via `--clean-db-pg-schema` argument to pytest.
 
+There's an [example project](https://github.com/Klavionik/pytest-clean-database-example) 
+that showcases the usage of the package. 
+
 ## Mode of operation
 Simply put, the approach for this package is to keep track of changes made to tables 
 using database triggers and an internal table, and truncate only the dirty ones. This 
