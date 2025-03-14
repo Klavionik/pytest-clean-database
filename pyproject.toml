@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytest-clean-database"
-version = "0.1.0"
+version = "1.0.0"
 description = "A pytest plugin that cleans your database up after every test."
 authors = ["Roman Vlasenko <klavionik@gmail.com>"]
 license = "MIT"
