@@ -23,7 +23,7 @@ repos:
 
       - id: ruff-format
         name: ruff-format-check
-        args: [--check]
+        args: [--diff]
         stages: [manual]
 
   - repo: local
