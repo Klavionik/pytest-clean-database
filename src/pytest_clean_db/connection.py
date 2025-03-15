@@ -8,6 +8,10 @@ from typing import Any, Literal, TypedDict
 Dialect = Literal["psql", "mysql"]
 
 
+class CleanDBConnectionError(Exception):
+    pass
+
+
 class MySQLArgs(TypedDict):
     host: str
     port: int
@@ -41,7 +45,7 @@ class PostgreSQLConnection(Connection):
         try:
             from psycopg import connect
         except ModuleNotFoundError:
-            raise RuntimeError(
+            raise CleanDBConnectionError(
                 "Cannot create connection: install psycopg to use PostgreSQL."
             )
 
@@ -72,7 +76,7 @@ class MySQLConnection(Connection):
         try:
             from pymysql import connect
         except ModuleNotFoundError:
-            raise RuntimeError(
+            raise CleanDBConnectionError(
                 "Cannot create connection: install pymysql to use MySQL."
             )
 
@@ -107,7 +111,7 @@ def mysql_dsn_to_args(dsn: str) -> MySQLArgs:
         or url.username is None
         or url.password is None
     ):
-        raise ValueError(f"Incorrect MySQL connection string {url}.")
+        raise CleanDBConnectionError(f"Incorrect MySQL connection string {dsn}.")
 
     # TODO: Support connection args from query parameters.
     args = MySQLArgs(
@@ -124,14 +128,16 @@ def mysql_dsn_to_args(dsn: str) -> MySQLArgs:
 
 def create_connection(dsn: str) -> Connection:
     try:
-        dialect, _ = dsn.rsplit("://")
+        scheme, _ = dsn.rsplit("://")
     except ValueError as exc:
         raise ValueError(f"Cannot detect scheme from connection string {dsn}.") from exc
 
-    if dialect == "postgresql":
+    if scheme == "postgresql":
         return PostgreSQLConnection(dsn)
 
-    if dialect == "mysql":
+    if scheme == "mysql":
         return MySQLConnection(dsn)
 
-    raise ValueError(f'Unknown dialect {dialect}. Use one of: "psql", "mysql".')
+    raise CleanDBConnectionError(
+        f'Unknown scheme {scheme}. Must be one of: "postgresql", "mysql".'
+    )

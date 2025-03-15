@@ -8,8 +8,20 @@ from psycopg import connect as pgconnect
 from pymysql import Connection as MySQLConnection
 from pymysql import connect as mysqlconnect
 
+from pytest_clean_db.connection import mysql_dsn_to_args
+
 
 @pytest.fixture(scope="session")
+def mysql_dsn() -> str:
+    return "mysql://root:password@0.0.0.0:3306/test"
+
+
+@pytest.fixture(scope="session")
+def pg_dsn() -> str:
+    return "postgresql://postgres:password@0.0.0.0:5432/test"
+
+
+@pytest.fixture()
 def test_database() -> Iterator[None]:
     with mysqlconnect(
         host="0.0.0.0",
@@ -52,55 +64,16 @@ def test_database() -> Iterator[None]:
             pg_cur.execute("DROP DATABASE test;")
 
 
-@pytest.fixture(scope="session")
-def test_tables(mysql_connection: MySQLConnection, pg_connection: PGConnection) -> None:
-    with mysql_connection.cursor() as mysql_cur, pg_connection.cursor() as pg_cur:
-        mysql_cur.execute("CREATE TABLE foo(baz BIGINT);")
-        mysql_cur.execute("CREATE TABLE bar(baz BIGINT);")
-
-        pg_cur.execute("CREATE TABLE foo(baz BIGINT);")
-        pg_cur.execute("CREATE TABLE bar(baz BIGINT);")
-
-
-@pytest.fixture(scope="session")
-def pg_connection(test_database: None) -> Iterator[PGConnection]:
+@pytest.fixture()
+def pg_connection(test_database: None, pg_dsn: str) -> Iterator[PGConnection]:
     with pgconnect(
-        "postgresql://postgres:password@0.0.0.0:5432/test",
+        pg_dsn,
         autocommit=True,
     ) as pg_conn:
         yield pg_conn
 
 
-@pytest.fixture(scope="session")
-def mysql_connection(test_database: None) -> Iterator[MySQLConnection]:
-    with mysqlconnect(
-        host="0.0.0.0",
-        port=3306,
-        user="root",
-        password="password",
-        database="test",
-        autocommit=True,
-    ) as mysql_conn:
+@pytest.fixture()
+def mysql_connection(test_database: None, mysql_dsn: str) -> Iterator[MySQLConnection]:
+    with mysqlconnect(**mysql_dsn_to_args(mysql_dsn)) as mysql_conn:
         yield mysql_conn
-
-
-@pytest.fixture(scope="session")
-def clean_db_urls(test_tables: None) -> list[str]:
-    return [
-        "postgresql://postgres:password@0.0.0.0:5432/test",
-        "mysql://root:password@0.0.0.0:3306/test",
-    ]
-
-
-@pytest.fixture(scope="session", params=["psql", "mysql"])
-def test_connection(
-    request: pytest.FixtureRequest,
-    mysql_connection: MySQLConnection,
-    pg_connection: PGConnection,
-) -> Iterator[MySQLConnection | PGConnection]:
-    if request.param == "psql":
-        yield pg_connection
-    elif request.param == "mysql":
-        yield mysql_connection
-    else:
-        raise RuntimeError
