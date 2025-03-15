@@ -1,5 +1,6 @@
 # pytest-clean-database
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![codecov](https://codecov.io/gh/Klavionik/pytest-clean-database/graph/badge.svg?token=Q8PCV91XSR)](https://codecov.io/gh/Klavionik/pytest-clean-database)
 [![PyPI - Version](https://img.shields.io/pypi/v/pytest-clean-database)](https://pypi.org/project/pytest-clean-database)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pytest-clean-database)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/pytest-clean-database)](https://pypistats.org/packages/pytest-clean-database)
