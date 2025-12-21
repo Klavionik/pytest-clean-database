@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from typing import Literal
+from typing import List, Literal
 
 import pytest
 
@@ -17,10 +17,16 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     group.addoption(
         "--clean-db-pg-schema", default="public", help="Set schema for PostgreSQL."
     )
+    group.addoption(
+        "--clean-db-exclude-tables",
+        default=[],
+        help="Exclude tables from being tracked.",
+        nargs="+",
+    )
 
 
 @pytest.fixture(scope="session")
-def clean_db_connections(clean_db_urls: Iterable[str]) -> Iterator[list[Connection]]:
+def clean_db_connections(clean_db_urls: Iterable[str]) -> Iterator[List[Connection]]:
     connections = [create_connection(url) for url in clean_db_urls]
 
     yield connections
@@ -31,20 +37,24 @@ def clean_db_connections(clean_db_urls: Iterable[str]) -> Iterator[list[Connecti
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_tracing(
-    request: pytest.FixtureRequest, clean_db_connections: list[Connection]
+    request: pytest.FixtureRequest, clean_db_connections: List[Connection]
 ) -> None:
     for conn in clean_db_connections:
         if conn.dialect == "psql":
-            postgres.setup_tracing(request.config.option.clean_db_pg_schema, conn)
+            postgres.setup_tracing(
+                request.config.option.clean_db_pg_schema,
+                request.config.option.clean_db_exclude_tables,
+                conn,
+            )
         elif conn.dialect == "mysql":
-            mysql.setup_tracing(conn)
+            mysql.setup_tracing(request.config.option.clean_db_exclude_tables, conn)
         else:
             raise ValueError(f"Invalid database dialect {conn.dialect}.")
 
 
 @pytest.fixture(autouse=True)
 def run_clean_tables(
-    request: pytest.FixtureRequest, clean_db_connections: list[Connection]
+    request: pytest.FixtureRequest, clean_db_connections: List[Connection]
 ) -> Iterator[None]:
     yield
 

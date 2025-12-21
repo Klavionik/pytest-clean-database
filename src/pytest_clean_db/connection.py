@@ -3,7 +3,8 @@ from __future__ import annotations
 import abc
 import itertools
 import urllib.parse
-from typing import Any, Literal, TypedDict
+from collections.abc import Mapping, Sequence
+from typing import Any, List, Literal, Optional, TypedDict, Union
 
 Dialect = Literal["psql", "mysql"]
 
@@ -28,11 +29,13 @@ class Connection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def execute(self, query: str) -> Any:
+    def execute(
+        self, query: str, params: Optional[Union[Sequence, Mapping[str, Any]]] = None
+    ) -> Any:
         pass
 
     @abc.abstractmethod
-    def fetch(self, query: str) -> list[str]:
+    def fetch(self, query: str) -> List[str]:
         pass
 
     @abc.abstractmethod
@@ -56,11 +59,13 @@ class PostgreSQLConnection(Connection):
     def dialect(self) -> Dialect:
         return "psql"
 
-    def execute(self, query: str) -> Any:
+    def execute(
+        self, query: str, params: Optional[Union[Sequence, Mapping[str, Any]]] = None
+    ) -> Any:
         with self._conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, params)
 
-    def fetch(self, query: str) -> list[str]:
+    def fetch(self, query: str) -> List[str]:
         with self._conn.cursor() as cur:
             cur.execute(query)
             result = cur.fetchall()
@@ -87,11 +92,13 @@ class MySQLConnection(Connection):
     def dialect(self) -> Dialect:
         return "mysql"
 
-    def execute(self, query: str) -> Any:
+    def execute(
+        self, query: str, params: Optional[Union[Sequence, Mapping[str, Any]]] = None
+    ) -> Any:
         with self._conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, params)
 
-    def fetch(self, query: str) -> list[str]:
+    def fetch(self, query: str) -> List[str]:
         with self._conn.cursor() as cur:
             cur.execute(query)
             result = cur.fetchall()
