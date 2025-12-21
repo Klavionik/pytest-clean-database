@@ -57,14 +57,18 @@ def test_makes_side_effect(test_connection: MySQLConnection | PGConnection):
     with test_connection.cursor() as cur:
         cur.execute("INSERT INTO foo(baz) VALUES (1);")
         cur.execute("INSERT INTO bar(baz) VALUES (1);")
+        cur.execute("INSERT INTO exclude_me(baz) VALUES (1);")
 
         cur.execute("SELECT * FROM foo;")
         foo_rows = cur.fetchall()
         cur.execute("SELECT * FROM bar;")
         bar_rows = cur.fetchall()
+        cur.execute("SELECT * FROM exclude_me;")
+        exclude_me_rows = cur.fetchall()
 
-    assert len(foo_rows)
-    assert len(bar_rows)
+    assert len(foo_rows) == 1
+    assert len(bar_rows) == 1
+    assert len(exclude_me_rows) == 1
 
 
 def test_clean_tables_works(test_connection: MySQLConnection | PGConnection):
@@ -73,9 +77,12 @@ def test_clean_tables_works(test_connection: MySQLConnection | PGConnection):
         foo_rows = cur.fetchall()
         cur.execute("SELECT * FROM bar;")
         bar_rows = cur.fetchall()
+        cur.execute("SELECT * FROM exclude_me;")
+        exclude_me_rows = cur.fetchall()
 
-    assert not len(foo_rows)
-    assert not len(bar_rows)
+    assert len(foo_rows) == 0
+    assert len(bar_rows) == 0
+    assert len(exclude_me_rows) == 1
 """
 
 
@@ -87,13 +94,15 @@ def test_clean_db_plugin(
 ) -> None:
     pg_connection.execute("CREATE TABLE foo (baz BIGINT);")
     pg_connection.execute("CREATE TABLE bar (baz BIGINT);")
+    pg_connection.execute("CREATE TABLE exclude_me (baz BIGINT);")
 
     with mysql_connection.cursor() as cur:
         cur.execute("CREATE TABLE foo (baz BIGINT);")
         cur.execute("CREATE TABLE bar (baz BIGINT);")
+        cur.execute("CREATE TABLE exclude_me (baz BIGINT);")
 
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(TESTS)
 
-    result = pytester.runpytest()
+    result = pytester.runpytest("--clean-db-exclude-tables", "exclude_me")
     result.assert_outcomes(passed=4)

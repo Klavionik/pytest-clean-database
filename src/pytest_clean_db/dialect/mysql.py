@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from pytest_clean_db.connection import Connection
@@ -7,7 +7,8 @@ CREATE_DIRTY_TABLE = """\
 CREATE TABLE __dirty_tables AS
   SELECT TABLE_NAME AS name, FALSE AS is_dirty
   FROM information_schema.tables
-  WHERE table_schema = (SELECT DATABASE()) AND table_name != '__dirty_tables';
+  WHERE table_schema = (SELECT DATABASE())
+  AND table_name != '__dirty_tables'
 """
 
 CREATE_MARK_DIRTY_TRIGGER = """\
@@ -58,8 +59,16 @@ CALL clean_tables();
 """
 
 
-def setup_tracing(conn: "Connection") -> None:
-    conn.execute(CREATE_DIRTY_TABLE)
+def setup_tracing(excluded_tables: List[str], conn: "Connection") -> None:
+    if len(excluded_tables):
+        create_dirty_table_query = (
+            CREATE_DIRTY_TABLE + "\nAND table_name != ANY(SELECT %s)"
+        )
+        conn.execute(create_dirty_table_query, [excluded_tables])
+    else:
+        create_dirty_table_query = CREATE_DIRTY_TABLE
+        conn.execute(create_dirty_table_query)
+
     conn.execute(CREATE_MARK_DIRTY_FUNCTION)
     conn.execute(CREATE_CLEAN_TABLES_FUNCTION)
 

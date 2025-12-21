@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from pytest_clean_db.connection import Connection
@@ -9,7 +9,17 @@ CREATE TABLE %(schema)s.__dirty_tables (name, is_dirty) AS (
   FROM pg_class
   WHERE relkind = 'r'
   AND relnamespace = '%(schema)s'::regnamespace
-)
+);
+"""
+
+CREATE_DIRTY_TABLE_W_EXCLUDED = """\
+CREATE TABLE %(schema)s.__dirty_tables (name, is_dirty) AS (
+  SELECT relname, FALSE
+  FROM pg_class
+  WHERE relkind = 'r'
+  AND relnamespace = '%(schema)s'::regnamespace
+  AND relname != ANY(%%(excluded_tables)s)
+);
 """
 
 CREATE_MARK_DIRTY_FUNCTION = """\
@@ -60,8 +70,18 @@ SELECT %(schema)s.clean_tables();
 """
 
 
-def setup_tracing(db_schema: str, conn: "Connection") -> None:
-    conn.execute(CREATE_DIRTY_TABLE % {"schema": db_schema})
+def setup_tracing(
+    db_schema: str, excluded_tables: List[str], conn: "Connection"
+) -> None:
+    if len(excluded_tables):
+        create_dirty_table_query = CREATE_DIRTY_TABLE_W_EXCLUDED
+    else:
+        create_dirty_table_query = CREATE_DIRTY_TABLE
+
+    conn.execute(
+        create_dirty_table_query % {"schema": db_schema},
+        {"excluded_tables": excluded_tables},
+    )
     conn.execute(CREATE_MARK_DIRTY_FUNCTION % {"schema": db_schema})
     conn.execute(CREATE_CLEAN_TABLES_FUNCTION % {"schema": db_schema})
 
